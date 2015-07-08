@@ -65,7 +65,7 @@ Set grip_proxies in your application configuration:
 ]
 ```
 
-If it's possible for clients to access the Rails app directly, without necessarily going through the GRIP proxy, then you may want to avoid sending GRIP instructions to those clients. An easy way to achieve this is with the grip_proxy_required setting. If set, then any direct requests that trigger a GRIP instruction response will be given a 501 Not Implemented error instead.
+If it's possible for clients to access the Laravel app directly, without necessarily going through the GRIP proxy, then you may want to avoid sending GRIP instructions to those clients. An easy way to achieve this is with the grip_proxy_required setting. If set, then any direct requests that trigger a GRIP instruction response will be given a 501 Not Implemented error instead.
 
 ```
 'grip_proxy_required' => true
@@ -74,22 +74,22 @@ If it's possible for clients to access the Rails app directly, without necessari
 To prepend a fixed string to all channels used for publishing and subscribing, set grip_prefix in your configuration:
 
 ```
-'grip_prefix' => ''
+'grip_prefix' => '<prefix>'
 ```
 
 You can also set any other EPCP servers that aren't necessarily proxies with publish_servers:
 
 ```
-'config.publish_servers' => [
+'publish_servers' => [
     [
         'uri' => 'https://api.fanout.io/realm/your-realm',
         'iss' => 'your-iss',
         'key' => 'your-key'
     ]
-],
+]
 ```
 
-This library also comes with a middleware class that you should use. The middleware will parse the Grip-Sig header in any requests in order to detect if they came from a GRIP proxy, and it will apply any hold instructions when responding. Additionally, the middleware handles WebSocket-Over-HTTP processing so that WebSockets managed by the GRIP proxy can be controlled via HTTP responses from the Rails application.
+This library also comes with a middleware class that you should use. The middleware will parse the Grip-Sig header in any requests in order to detect if they came from a GRIP proxy, and it will apply any hold instructions when responding. Additionally, the middleware handles WebSocket-Over-HTTP processing so that WebSockets managed by the GRIP proxy can be controlled via HTTP responses from the Laravel application.
 
 The middleware should be placed as early as possible in the proessing order, so that it can collect all response headers and provide them in a hold instruction if necessary.
 
@@ -102,6 +102,8 @@ protected $middleware = [
     ...
 ];
 ```
+
+Note that the built-in VerifyCsrfToken middleware in Laravel will throw a TokenMismatchException for POST requests coming from GRIP proxies. See this post regarding solutions for avoiding this exception: <http://stackoverflow.com/questions/29192806/laravel-curl-post-throwing-tokenmismatchexception>
 
 Example controller:
 
