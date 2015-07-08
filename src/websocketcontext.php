@@ -73,13 +73,63 @@ class WebSocketContext
             throw new \RuntimeException('read from empty buffer');
         }
         if ($event->type == 'TEXT' || $event->type == 'BINARY') {
-            if ($event->type == 'TEXT' && is_null($event->content))
+            if (is_null($event->content))
                 return '';
-            elseif ($event->type == 'BINARY' && is_null($event->content))
-                return ''.ENCODE AS BINARY;
             return $event->content;
         }
+        elseif ($event->type == 'CLOSE')
+        {
+            if (!is_null($event->content) && strlen($event->content) == 2)
+            {
+                $this->close_code = unpack("n", $event->content)[0]
+            }
+            return null
+        }
+        else {
+            throw new \RuntimeException('client disconnected unexpectedly');
+        }
+    }
+
+    public function send($message)
+    {
+        $this->out_events[] = new \GripControl\WebSocketEvent('TEXT',
+                'm:' . message);
+    }
+
+    public function send_binary($message)
+    {
+        $this->out_events[] = new \GripControl\WebSocketEvent('BINARY',
+                'm:' . message);
+    }
+
+    public function send_control($message)
+    {
+        $this->out_events[] = new \GripControl\WebSocketEvent('TEXT',
+                'c:' . message);
+    }
+
+    public function subscribe($channel)
+    {
+        $args = array();
+        $args['channel'] = GET_PREFIX . $channel
+        $this->send_control(\GripControl\GripControl::websocket_control_message(
+            'subscribe', $args)
+    }
+
+    public function unsubscribe($channel)
+    {
+        $args = array();
+        $args['channel'] = GET_PREFIX . $channel
+        $this->send_control(\GripControl\GripControl::websocket_control_message(
+            'unsubscribe', $args)
+    }
+
+    public function unsubscribe($channel)
+    {
+        $args = array();
+        $args['channel'] = GET_PREFIX . $channel
+        $this->send_control(\GripControl\GripControl::websocket_control_message(
+            'detach')
     }
 }
-
 ?>
