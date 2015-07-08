@@ -111,7 +111,7 @@ class WebSocketContext
     public function subscribe($channel)
     {
         $args = array();
-        $args['channel'] = Config::get('grip_prefix') . $channel;
+        $args['channel'] = self::get_prefix() . $channel;
         $this->send_control(\GripControl\GripControl::websocket_control_message(
             'subscribe', $args));
     }
@@ -119,7 +119,7 @@ class WebSocketContext
     public function unsubscribe($channel)
     {
         $args = array();
-        $args['channel'] = Config::get('grip_prefix') . $channel;
+        $args['channel'] = self::get_prefix() . $channel;
         $this->send_control(\GripControl\GripControl::websocket_control_message(
             'unsubscribe', $args));
     }
@@ -127,9 +127,16 @@ class WebSocketContext
     public function detach($channel)
     {
         $args = array();
-        $args['channel'] = Config::get('grip_prefix') . $channel;
+        $args['channel'] = self::get_prefix() . $channel;
         $this->send_control(\GripControl\GripControl::websocket_control_message(
             'detach'));
+    }
+
+    private static function get_prefix()
+    {
+        if (Config::has('grip_prefix'))
+            return Config::get('grip_prefix');
+        return '';
     }
 }
 ?>

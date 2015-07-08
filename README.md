@@ -96,11 +96,11 @@ The middleware should be placed as early as possible in the proessing order, so 
 To register the middle add it to the global middleware stack in app/Http/Kernel.php:
 
 ```php
-    protected $middleware = [
-        ...
-        \LaravelGrip\GripMiddleware::class,
-        ...
-    ];
+protected $middleware = [
+    ...
+    \LaravelGrip\GripMiddleware::class,
+    ...
+];
 ```
 
 Example controller:
