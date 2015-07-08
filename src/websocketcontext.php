@@ -28,7 +28,7 @@ class WebSocketContext
     public function is_opening()
     {
         return (!is_null($this->in_events && count($this->in_events) > 0 &&
-                $this->in_events[0]->type == 'OPEN');
+                $this->in_events[0]->type == 'OPEN'));
     }
 
     public function accept()
@@ -40,9 +40,9 @@ class WebSocketContext
     {
         $this->closed = true;
         if (!is_null($code))
-            $this->out_close_code = $code
+            $this->out_close_code = $code;
         else
-            $this->out_close_code = 0
+            $this->out_close_code = 0;
     }
 
     public function can_recv()
@@ -53,12 +53,12 @@ class WebSocketContext
             if (in_array($event->type, $event_types))
                 return true;
         }
-        return false
+        return false;
     }
 
     public function recv()
     {
-        $event = null
+        $event = null;
         $event_types = array('TEXT', 'BINARY', 'CLOSE', 'DISCONNECT');
         while (is_null($recv_event) &&
                 $this->read_index < count($this->in_events))
@@ -81,9 +81,9 @@ class WebSocketContext
         {
             if (!is_null($event->content) && strlen($event->content) == 2)
             {
-                $this->close_code = unpack("n", $event->content)[0]
+                $this->close_code = unpack("n", $event->content)[0];
             }
-            return null
+            return null;
         }
         else {
             throw new \RuntimeException('client disconnected unexpectedly');
@@ -111,25 +111,25 @@ class WebSocketContext
     public function subscribe($channel)
     {
         $args = array();
-        $args['channel'] = GET_PREFIX . $channel
+        $args['channel'] = Config::get('grip_prefix') . $channel;
         $this->send_control(\GripControl\GripControl::websocket_control_message(
-            'subscribe', $args)
+            'subscribe', $args));
     }
 
     public function unsubscribe($channel)
     {
         $args = array();
-        $args['channel'] = GET_PREFIX . $channel
+        $args['channel'] = Config::get('grip_prefix') . $channel;
         $this->send_control(\GripControl\GripControl::websocket_control_message(
-            'unsubscribe', $args)
+            'unsubscribe', $args));
     }
 
-    public function unsubscribe($channel)
+    public function detach($channel)
     {
         $args = array();
-        $args['channel'] = GET_PREFIX . $channel
+        $args['channel'] = Config::get('grip_prefix') . $channel;
         $this->send_control(\GripControl\GripControl::websocket_control_message(
-            'detach')
+            'detach'));
     }
 }
 ?>

@@ -15,8 +15,11 @@ class GripMiddleware
 {
     public function handle($request, Closure $next)
     {
-        
+        Print "Before request\r\n";
+
         $response = $next($request);
+
+        Print "After successful\r\n";
 
         return $response;
     }

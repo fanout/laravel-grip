@@ -18,7 +18,8 @@
         "phpunit/phpunit": "3.7.14"
     },
     "autoload": {
-        "files": ["src/gripmiddleware.php"]
+        "files": ["src/gripmiddleware.php",
+                  "src/websocketcontext.php"]
     },
     "target-dir": "fanout/laravel-grip",
     "minimum-stability": "dev"
