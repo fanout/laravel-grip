@@ -52,7 +52,6 @@ class GripMiddleware
                 (!is_null($accept_types) && in_array(
                 'application/websocket-events', $accept_types))))
         {
-            Print 'yes';
         }
 
         $response = $next($request);
