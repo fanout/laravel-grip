@@ -72,7 +72,7 @@ class GripMiddleware
             $wscontext = new WebSocketContext($cid, $meta, $events);
         }
         $request->grip_proxied = $grip_signed;
-        $request->ws_context = $wscontext;
+        $request->grip_wscontext = $wscontext;
         try
         {
             $response = $next($request);
@@ -81,19 +81,57 @@ class GripMiddleware
             return new \Symfony\Component\HttpFoundation\Response(
                     $e->getMessage(), 400);
         }
-
-        #foreach ($meta as $key => $value)
-        #    Print $key . ':' . $value . '<br>';
+        if (!is_null($request->grip_wscontext) &&
+                $response->getStatusCode() == 200)
+        {
+            $wscontext = $request->grip_wscontext;
+            $meta_remove = array();
+            foreach ($wscontext->orig_meta as $key => $value) {
+                $found = false;
+                foreach ($wscontext->meta as $nkey => $nvalue)
+                    if (strtolower($nkey) == $key)
+                    {
+                        $found = true;
+                        break;
+                    }
+                if (!$found)
+                    $meta_remove[] = $key;
+            }
+            $meta_remove = array_unique($meta_remove);
+            $meta_set = array();
+            foreach ($wscontext->meta as $key => $value) {
+                $lname = strtolower($key);
+                $need_set = true;
+                foreach ($wscontext->orig_meta as $okey => $ovalue) {
+                    if ($lname == $okey && $value == $ovalue)
+                    {
+                        $need_set = false;
+                        break;
+                    }
+                }
+                if ($need_set)
+                    $meta_set[$lname] = $value;
+            }
+            $events = array();
+            if ($wscontext->accepted)
+                $events[] = new \GripControl\WebSocketEvent('OPEN');
+            array_push($events, $ws_context->out_events);
+            if ($wscontext->closed)
+                $events[] = new \GripControl\WebSocketEvent('CLOSE',
+                        pack("n", $wscontext->out_close_code));
+            $response->setContent(
+                    \GripControl\GripControl::encode_websocket_events($events));
+            $response->header('Content-Type', 'application/websocket-events');
+            if ($wscontext->accepted)
+                $response->header('Sec-WebSocket-Extensions', 'grip');
+            foreach ($meta_remove as $key)
+                $response->header('Set-Meta-' . $key, '');
+            foreach ($meta_set as $key => $value)
+                $response->header('Set-Meta-' . $key, $value);
+        }
 
         return $response;
     }
-}
-
-function verify_is_websocket()
-{
-    if (is_null(\Request::instance()->ws_context))
-        throw new NonWebSocketRequestException(
-                'This endpoint only allows WebSocket requests.');
 }
 
 ?>
