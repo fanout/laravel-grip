@@ -19,7 +19,8 @@
     },
     "autoload": {
         "files": ["src/gripmiddleware.php",
-                  "src/websocketcontext.php"]
+                  "src/websocketcontext.php",
+                  "src/nonwebsocketrequestexception.php"]
     },
     "target-dir": "fanout/laravel-grip",
     "minimum-stability": "dev"

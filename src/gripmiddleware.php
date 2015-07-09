@@ -52,12 +52,48 @@ class GripMiddleware
                 (!is_null($accept_types) && in_array(
                 'application/websocket-events', $accept_types))))
         {
+            $cid = null;
+            if (array_key_exists('connection-id', \Request::header()))
+                $cid = \Request::header('content-type');
+            $meta = array();
+            foreach (\Request::header() as $key => $value)
+                if (strpos($key, 'meta') === 0)
+                    $meta[substr($key, 5)] = $value[0];
+            $events = null;
+            try
+            {
+                $events = \GripControl\GripControl::decode_websocket_events(
+                        $request->getContent());
+            }
+            catch (\RuntimeException $e) {
+                return new \Symfony\Component\HttpFoundation\Response(
+                        "Error parsing WebSocket events.\n", 400);
+            }
+            $wscontext = new WebSocketContext($cid, $meta, $events);
+        }
+        $request->grip_proxied = $grip_signed;
+        $request->ws_context = $wscontext;
+        try
+        {
+            $response = $next($request);
+        }
+        catch (NonWebSocketRequestException $e) {
+            return new \Symfony\Component\HttpFoundation\Response(
+                    $e->getMessage(), 400);
         }
 
-        $response = $next($request);
+        #foreach ($meta as $key => $value)
+        #    Print $key . ':' . $value . '<br>';
 
         return $response;
     }
+}
+
+function verify_is_websocket()
+{
+    if (is_null(\Request::instance()->ws_context))
+        throw new NonWebSocketRequestException(
+                'This endpoint only allows WebSocket requests.');
 }
 
 ?>
