@@ -113,4 +113,33 @@ Example controller:
 Stateless WebSocket echo service with broadcast endpoint:
 
 ```php
+Route::post('/', [function () {
+    # reject non-websocket requests
+    LaravelGrip\verify_is_websocket();
+
+    # if this is a new connection, accept it and subscribe it to a channel
+    $ws = LaravelGrip\get_wscontext();
+    if ($ws->is_opening())
+    {
+        $ws->accept();
+        $ws->subscribe('test_channel');
+    }
+
+    while ($ws->can_recv())
+    {
+        $message = $ws->recv();
+
+        # if return value is nil, then the connection is closed
+        if (is_null($message))
+        {
+            $ws->close();
+            break;
+        }
+
+        # echo the message
+        $ws->send($message);
+    }
+
+    return null;
+}]);
 ```

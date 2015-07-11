@@ -115,21 +115,33 @@ class GripMiddleware
             $events = array();
             if ($wscontext->accepted)
                 $events[] = new \GripControl\WebSocketEvent('OPEN');
-            array_push($events, $ws_context->out_events);
+            $events = array_merge($events, $wscontext->out_events);
             if ($wscontext->closed)
                 $events[] = new \GripControl\WebSocketEvent('CLOSE',
                         pack("n", $wscontext->out_close_code));
             $response->setContent(
                     \GripControl\GripControl::encode_websocket_events($events));
             $response->header('Content-Type', 'application/websocket-events');
-            if ($wscontext->accepted)
-                $response->header('Sec-WebSocket-Extensions', 'grip');
+            $response->header('Sec-WebSocket-Extensions', 'grip');
             foreach ($meta_remove as $key)
                 $response->header('Set-Meta-' . $key, '');
             foreach ($meta_set as $key => $value)
                 $response->header('Set-Meta-' . $key, $value);
         }
-
+        elseif (!is_null($request->grip_hold))
+        {
+            if (!$request->grip_proxied &&
+                    \Config::has('app.grip_proxy_required') &&
+                    \Config::get('app.grip_proxy_required'))
+                return new \Symfony\Component\HttpFoundation\Response(
+                        'Not implemented.\n', 501);
+            $channels = $request->grip_channels;
+            $prefix = LaravelGrip\get_prefix();
+            if ($prefix != '')
+                foreach ($channels as $channel)
+                    $channel->name += $prefix;
+            
+        }
         return $response;
     }
 }
