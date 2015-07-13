@@ -15,6 +15,9 @@ class GripMiddleware
 {
     public function handle($request, Closure $next)
     {
+        $request->grip_timeout = null;
+        $request->grip_hold = null;
+        $request->grip_channels = null;
         $request->grip_proxied = false;
         $request->grip_wscontext = null;
         $grip_signed = false;
@@ -136,11 +139,34 @@ class GripMiddleware
                 return new \Symfony\Component\HttpFoundation\Response(
                         'Not implemented.\n', 501);
             $channels = $request->grip_channels;
-            $prefix = LaravelGrip\get_prefix();
+            $prefix = get_prefix();
             if ($prefix != '')
                 foreach ($channels as $channel)
                     $channel->name += $prefix;
-            
+            if ($response->getStatusCode() == 304)
+            {
+                $iheaders = array();
+                foreach ($response->header() as $key => $value)
+                    $iheaders[$key] = $value;
+                $iresponse = new \GripControl\Response(
+                        $response->getStatusCode(), null, $iheaders,
+                        $response->getContent());
+                $response->setContent(\GripControl\GripControl::create_hold(
+                        $request->grip_hold, $channels, $iresponse,
+                        $request->grip_timeout));
+                foreach ($response->header() as $key => $value)
+                    $response->header($key, null);
+                $response->header('Content-Type', 'application/grip-instruct');
+            }
+            else
+            {
+                $response->header('Grip-Hold', $request->grip_hold);
+                $response->header('Grip-Channel',
+                        \GripControl\GripControl::create_grip_channel_header(
+                        $channels));
+                if (!is_null($request->grip_timeout))
+                    $response->header('Grip-Timeout', $request->grip_timeout);
+            }
         }
         return $response;
     }

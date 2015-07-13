@@ -32,6 +32,8 @@ Manual: ensure that php-gripcontrol has been included and require the following 
 ```PHP
 require 'laravel-grip/src/gripmiddleware.php';
 require 'laravel-grip/src/websocketcontext.php';
+require 'laravel-grip/src/laravelgrip.php';
+require 'laravel-grip/src/nonwebsocketrequestexception.php';
 ```
 
 Asynchronous Publishing
@@ -108,6 +110,16 @@ Note that the built-in VerifyCsrfToken middleware in Laravel will throw a TokenM
 Example controller:
 
 ```php
+Route::get('/', [function () {;
+    # if the request didn't come through a GRIP proxy, throw 501
+    if (!LaravelGrip\is_grip_proxied())
+        return new \Symfony\Component\HttpFoundation\Response(
+                'Not implemented.\n', 501);
+
+    # subscribe every incoming request to a channel in stream mode
+    LaravelGrip\set_hold_stream('<channel>');
+    return '[stream open]';
+}]);
 ```
 
 Stateless WebSocket echo service with broadcast endpoint:
