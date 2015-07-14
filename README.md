@@ -113,7 +113,7 @@ Example controller:
 Route::get('/', [function () {;
     # if the request didn't come through a GRIP proxy, throw 501
     if (!LaravelGrip\is_grip_proxied())
-        return new \Symfony\Component\HttpFoundation\Response(
+        return new Illuminate\Http\Response(
                 'Not implemented.\n', 501);
 
     # subscribe every incoming request to a channel in stream mode

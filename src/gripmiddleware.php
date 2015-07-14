@@ -69,7 +69,7 @@ class GripMiddleware
                         $request->getContent());
             }
             catch (\RuntimeException $e) {
-                return new \Symfony\Component\HttpFoundation\Response(
+                return new \Illuminate\Http\Response(
                         "Error parsing WebSocket events.\n", 400);
             }
             $wscontext = new WebSocketContext($cid, $meta, $events);
@@ -81,7 +81,7 @@ class GripMiddleware
             $response = $next($request);
         }
         catch (NonWebSocketRequestException $e) {
-            return new \Symfony\Component\HttpFoundation\Response(
+            return new \Illuminate\Http\Response(
                     $e->getMessage(), 400);
         }
         if (!is_null($request->grip_wscontext) &&
@@ -136,7 +136,7 @@ class GripMiddleware
             if (!$request->grip_proxied &&
                     \Config::has('app.grip_proxy_required') &&
                     \Config::get('app.grip_proxy_required'))
-                return new \Symfony\Component\HttpFoundation\Response(
+                return new \Illuminate\Http\Response(
                         'Not implemented.\n', 501);
             $channels = $request->grip_channels;
             $prefix = get_prefix();
@@ -146,17 +146,17 @@ class GripMiddleware
             if ($response->getStatusCode() == 304)
             {
                 $iheaders = array();
-                foreach ($response->header() as $key => $value)
-                    $iheaders[$key] = $value;
+                foreach ($response->headers->all() as $key => $value)
+                    $iheaders[$key] = $value[0];
                 $iresponse = new \GripControl\Response(
                         $response->getStatusCode(), null, $iheaders,
                         $response->getContent());
                 $response->setContent(\GripControl\GripControl::create_hold(
                         $request->grip_hold, $channels, $iresponse,
                         $request->grip_timeout));
-                foreach ($response->header() as $key => $value)
-                    $response->header($key, null);
-                $response->header('Content-Type', 'application/grip-instruct');
+                $response->headers->replace(array(
+                        'Content-Type' => 'application/grip-instruct'));
+                $response->setStatusCode(200);
             }
             else
             {
