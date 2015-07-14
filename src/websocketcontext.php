@@ -81,7 +81,7 @@ class WebSocketContext
         elseif ($event->type == 'CLOSE')
         {
             if (!is_null($event->content) && strlen($event->content) == 2)
-                $this->close_code = unpack("n", $event->content)[0];
+                $this->close_code = unpack("n", $event->content)[1];
             return null;
         }
         else {
