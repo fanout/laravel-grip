@@ -154,4 +154,14 @@ Route::post('/', [function () {
 
     return null;
 }]);
+
+Route::post('/broadcast', [function () {
+    $data = \Request::instance()->getContent();
+
+    # publish data to all clients that are connected to the echo endpoint
+    LaravelGrip\publish('<channel>',
+        new \GripControl\WebSocketMessageFormat($data));
+
+    return "Ok\n";
+}]);
 ```
