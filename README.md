@@ -16,6 +16,7 @@ Requirements
 * openssl
 * curl
 * pthreads (required for asynchronous publishing)
+* laravel >=5.0
 * fanout/gripcontrol >=2.0.0 (retrieved automatically via Composer)
 
 Installation
@@ -134,7 +135,7 @@ Route::post('/', [function () {
     if ($ws->is_opening())
     {
         $ws->accept();
-        $ws->subscribe('test_channel');
+        $ws->subscribe('<channel>');
     }
 
     while ($ws->can_recv())
