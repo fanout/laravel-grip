@@ -1,168 +1,106 @@
-laravel-grip
-================
+## laravel-grip
 
-Author: Konstantin Bokarius <kon@fanout.io>
+GRIP library for [Laravel](https://laravel.com/), provided as a Laravel package.
 
-A Laravel GRIP library.
+Minimum supported version of Laravel is 7.0, but it may work with older versions.
 
-License
--------
+Supported GRIP servers include:
 
-laravel-grip is offered under the MIT license. See the LICENSE file.
+* [Pushpin](http://pushpin.org/)
+* [Fanout Cloud](https://fanout.io/cloud/)
 
-Requirements
-------------
+Authors: Katsuyuki Ohmuro <kats@fanout.io>
 
-* openssl
-* curl
-* pthreads (required for asynchronous publishing)
-* laravel >=5.0
-* fanout/gripcontrol >=2.0.0 (retrieved automatically via Composer)
+### Introduction
 
-Installation
-------------
+[GRIP](https://pushpin.org/docs/protocols/grip/) is a protocol that enables a web service to
+delegate realtime push behavior to a proxy component, using HTTP and headers.
 
-Using Composer:
+`laravel-grip` parses the `Grip-Sig` header in any requests to detect if they came
+through a GRIP proxy, and provides your route handler with tools to handle such requests.
+This includes access to information about whether the current request is proxied or is signed,
+as well as  methods to issue any hold instructions to the GRIP proxy.
+
+Additionally, `laravel-grip` also handles
+[WebSocket-Over-HTTP processing](https://pushpin.org/docs/protocols/websocket-over-http/) so
+that WebSocket connections managed by the GRIP proxy can be controlled by your route handlers.
+
+### Installation
+
+Install the library.
 
 ```sh
 composer require fanout/laravel-grip
 ```
 
-Manual: ensure that php-gripcontrol has been included and require the following files in laravel-grip:
+This brings in the library, as well as installs the middleware into your Laravel application's stack
+by using the providers mechanism of Composer.
 
-```PHP
-require 'laravel-grip/src/gripmiddleware.php';
-require 'laravel-grip/src/websocketcontext.php';
-require 'laravel-grip/src/laravelgrip.php';
-require 'laravel-grip/src/nonwebsocketrequestexception.php';
-```
+#### Configuration
 
-Asynchronous Publishing
------------------------
-
-In order to make asynchronous publish calls pthreads must be installed. If pthreads is not installed then only synchronous publish calls can be made. To install pthreads recompile PHP with the following flag: '--enable-maintainer-zts'
-
-Also note that since a callback passed to the publish_async methods is going to be executed in a separate thread, that callback and the class it belongs to are subject to the rules and limitations imposed by the pthreads extension.
-
-See more information about pthreads here: http://php.net/manual/en/book.pthreads.php
-
-Usage
------
-
-Set grip_proxies in your application configuration:
-
-```
-# pushpin and/or fanout.io is used for sending realtime data to clients
-'grip_proxies' => [
-    # pushpin
-    [
-        'control_uri' => 'http://localhost:5561',
-        'key' => 'changeme'
-    ]
-    # fanout.io
-    #[
-    #    'control_uri' => 'https://api.fanout.io/realm/your-realm',
-    #    'control_iss' => 'your-realm',
-    #    'key' => base64_decode('your-realm-key')
-    #]
-]
-```
-
-If it's possible for clients to access the Laravel app directly, without necessarily going through the GRIP proxy, then you may want to avoid sending GRIP instructions to those clients. An easy way to achieve this is with the grip_proxy_required setting. If set, then any direct requests that trigger a GRIP instruction response will be given a 501 Not Implemented error instead.
-
-```
-'grip_proxy_required' => true
-```
-
-To prepend a fixed string to all channels used for publishing and subscribing, set grip_prefix in your configuration:
-
-```
-'grip_prefix' => '<prefix>'
-```
-
-You can also set any other EPCP servers that aren't necessarily proxies with publish_servers:
-
-```
-'publish_servers' => [
-    [
-        'uri' => 'https://api.fanout.io/realm/your-realm',
-        'iss' => 'your-iss',
-        'key' => 'your-key'
-    ]
-]
-```
-
-This library also comes with a middleware class that you should use. The middleware will parse the Grip-Sig header in any requests in order to detect if they came from a GRIP proxy, and it will apply any hold instructions when responding. Additionally, the middleware handles WebSocket-Over-HTTP processing so that WebSockets managed by the GRIP proxy can be controlled via HTTP responses from the Laravel application.
-
-The middleware should be placed as early as possible in the proessing order, so that it can collect all response headers and provide them in a hold instruction if necessary.
-
-To register the middle add it to the global middleware stack in app/Http/Kernel.php:
+`laravel-grip` can be configured by adding a file called `./config/grip.php` to your Laravel
+application.  It should look like this:
 
 ```php
-protected $middleware = [
-    ...
-    \LaravelGrip\GripMiddleware::class,
-    ...
+<?php
+
+return [
+    'grip' => /* string, array, or array of arrays */,
+    'prefix' => /* string. defaults to the empty string */,
+    'grip_proxy_required' => /* boolean, defaults to false */,
 ];
 ```
 
-Note that the built-in VerifyCsrfToken middleware in Laravel will throw a TokenMismatchException for POST requests coming from GRIP proxies. See this post regarding solutions for avoiding this exception: <http://stackoverflow.com/questions/29192806/laravel-curl-post-throwing-tokenmismatchexception>
+Available options:
+| Key | Value |
+| --- | --- |
+| `grip` | A definition of GRIP proxies used to publish messages. See below for details. |
+| `prefix` | An optional string that will be prepended to the name of channels being published to. This can be used for namespacing. Defaults to `''`. |
+| `grip_proxy_required` | A boolean value representing whether all incoming requests should require that they be called behind a GRIP proxy.  If this is true and a GRIP proxy is not detected, then a `501 Not Implemented` error will be issued. Defaults to `false`. |
 
-Example controller:
+The `grip` parameter may be provided as any of the following:
 
-```php
-Route::get('/', [function () {;
-    # if the request didn't come through a GRIP proxy, throw 501
-    if (!LaravelGrip\is_grip_proxied())
-        return new Illuminate\Http\Response(
-                'Not implemented.\n', 501);
+1. An object with the following fields:
 
-    # subscribe every incoming request to a channel in stream mode
-    LaravelGrip\set_hold_stream('<channel>');
-    return '[stream open]';
-}]);
-```
+| Key | Value |
+| --- | --- |
+| `control_uri` | Publishing endpoint for the GRIP proxy. |
+| `control_iss` | A claim string that is needed for servers that require authorization. For Fanout Cloud, this is the Realm ID. |
+| `key` | A key string that is needed for servers that require authorization. For Fanout Cloud, this is the Realm Key. |
 
-Stateless WebSocket echo service with broadcast endpoint:
+2. An array of such objects.
 
-```php
-Route::post('/', [function () {
-    # reject non-websocket requests
-    LaravelGrip\verify_is_websocket();
+3. A GRIP URI, which is a string that encodes the above as a single string.
 
-    # if this is a new connection, accept it and subscribe it to a channel
-    $ws = LaravelGrip\get_wscontext();
-    if ($ws->is_opening())
-    {
-        $ws->accept();
-        $ws->subscribe('<channel>');
-    }
+### Handling a route
 
-    while ($ws->can_recv())
-    {
-        $message = $ws->recv();
+The middleware will automatically be installed before all of your routes.
 
-        # if return value is nil, then the connection is closed
-        if (is_null($message))
-        {
-            $ws->close();
-            break;
-        }
+When your route runs, you will have access to the following facades:
+`Grip`, `GripInstruct`, `GripPublisher`, and `GripWebSocket`.
 
-        # echo the message
-        $ws->send($message);
-    }
+While `Grip` will be available in all requests, the others will be available only when
+applicable based on configuration and the current request.
 
-    return null;
-}]);
+The `Grip` facade provides the following functions:
 
-Route::post('/broadcast', [function () {
-    $data = \Request::instance()->getContent();
+| Key | Description |
+| --- | --- |
+| `Grip::is_proxied` | A boolean value indicating whether the current request has been called via a GRIP proxy. |
+| `Grip::is_signed` | A boolean value indicating whether the current request is a signed request called via a GRIP proxy. |
 
-    # publish data to all clients that are connected to the echo endpoint
-    LaravelGrip\publish('<channel>',
-        new \GripControl\WebSocketMessageFormat($data));
+When the current request is proxied, then the `GripInstruct` facade is available and provides
+the same functions as `GripInstruct` in `fanout/grip`.
 
-    return "Ok\n";
-}]);
-```
+When the current requiest is called over WebSocket-over-HTTP, then the `GripWebSocket` facade
+is available and provides the same functions as `WebSocketContext` in `fanout/grip`.
+
+To publish messages, use the `GripPublisher` facade.  It provides the same functions as `Publisher`
+in `fanout/grip`. Use it to publish messages using the endpoints and prefix specified in the
+`./config/grip.php` file.
+
+### Examples
+
+This repository contains examples to illustrate the use of `laravel-grip` found in the `examples`
+directory.  For details on each example, please read the `README.md` files in the corresponding
+directories.
