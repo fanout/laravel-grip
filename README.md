@@ -7,9 +7,11 @@ Minimum supported version of Laravel is 7.0, but it may work with older versions
 Supported GRIP servers include:
 
 * [Pushpin](http://pushpin.org/)
-* [Fanout Cloud](https://fanout.io/cloud/)
+* [Fastly Fanout](https://docs.fastly.com/products/fanout)
 
-Authors: Katsuyuki Ohmuro <kats@fanout.io>
+This library also supports legacy services hosted by [Fanout](https://fanout.io/) Cloud.
+
+Authors: Katsuyuki Omuro <komuro@fastly.com>, Madeline Boby <maddie.boby@fastly.com>
 
 ### Introduction
 
@@ -62,11 +64,13 @@ The `grip` parameter may be provided as any of the following:
 
 1. An object with the following fields:
 
-| Key | Value |
-| --- | --- |
-| `control_uri` | Publishing endpoint for the GRIP proxy. |
-| `control_iss` | A claim string that is needed for servers that require authorization. For Fanout Cloud, this is the Realm ID. |
-| `key` | A key string that is needed for servers that require authorization. For Fanout Cloud, this is the Realm Key. |
+| Key           | Value                                                                           |
+|---------------|---------------------------------------------------------------------------------|
+| `control_uri` | The Control URI of the GRIP client.                                             |
+| `control_iss` | (optional) The Control ISS, if required by the GRIP client.                     |
+| `key`         | (optional) The key to use with the Control ISS, if required by the GRIP client. |
+| `verify_iss`  | (optional) The ISS to use when validating a GRIP signature.                     |
+| `verify_key`  | (optional) The key to use when validating a GRIP signature.                     |
 
 2. An array of such objects.
 
@@ -104,3 +108,12 @@ in `fanout/grip`. Use it to publish messages using the endpoints and prefix spec
 This repository contains examples to illustrate the use of `laravel-grip` found in the `examples`
 directory.  For details on each example, please read the `README.md` files in the corresponding
 directories.
+
+
+## Testing
+
+Run tests using the following command:
+
+```
+./vendor/bin/phpunit
+```

@@ -5,8 +5,12 @@
   "license": "MIT",
   "authors": [
     {
-      "name": "Katsuyuki Ohmuro",
-      "email": "kats@fanout.io"
+      "name": "Katsuyuki Omuro",
+      "email": "komuro@fastly.com"
+    },
+    {
+      "name": "Madeline Boby",
+      "email": "madeline.boby@fastly.com"
     }
   ],
   "require": {
