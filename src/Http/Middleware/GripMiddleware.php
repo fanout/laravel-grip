@@ -98,7 +98,7 @@ class GripMiddleware {
             // If every client needs signing, then we mark as requires_signed;
             $requires_signed = true;
             foreach( $clients as $client ) {
-                if( !($client->auth instanceof JwtAuth && !empty($client->auth->key)) ) {
+                if( empty($client->get_verify_key()) ) {
                     $requires_signed = false;
                     break;
                 }
@@ -110,11 +110,9 @@ class GripMiddleware {
             if( $requires_signed ) {
                 Log::debug( 'requires validating grip signature' );
                 foreach( $clients as $client ) {
-                    // At this point, all clients are JwtAuth
-                    /** @var JwtAuth $auth */
-                    $auth = $client->auth;
-                    Log::debug('validating: ' . $grip_sig . ' with ' . $auth->key );
-                    if( JwtAuth::validate_signature( $grip_sig, $auth->key ) ) {
+                    // At this point, all clients have a verify key
+                    Log::debug('validating: ' . $grip_sig . ' with ' . $client->get_verify_key() );
+                    if( JwtAuth::validate_signature( $grip_sig, $client->get_verify_key(), $client->get_verify_iss() ) ) {
                         Log::debug('validated' );
                         $is_signed = true;
                         break;
