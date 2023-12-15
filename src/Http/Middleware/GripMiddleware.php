@@ -110,7 +110,7 @@ class GripMiddleware {
             if( $requires_signed ) {
                 Log::debug( 'requires validating grip signature' );
                 foreach( $clients as $client ) {
-                    // At this point, all clients are JwtAuth
+                    // At this point, all clients have a verify key
                     Log::debug('validating: ' . $grip_sig . ' with ' . $client->get_verify_key() );
                     if( JwtAuth::validate_signature( $grip_sig, $client->get_verify_key(), $client->get_verify_iss() ) ) {
                         Log::debug('validated' );
