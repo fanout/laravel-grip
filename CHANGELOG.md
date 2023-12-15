@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
+## [2.1.0] - 2023-12-16
+
 ### Added
 - Added support for verify-iss.
 - Updated with full support for Fastly Fanout.
@@ -18,5 +20,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added unit and feature tests
 - Minimum required Laravel version is 7.
 
-[unreleased]: https://github.com/fanout/laravel-grip/2.0.0...HEAD
+[unreleased]: https://github.com/fanout/laravel-grip/v2.1.0...HEAD
+[2.1.0]: https://github.com/fanout/laravel-grip/2.0.0...v2.1.0
 [2.0.0]: https://github.com/fanout/laravel-grip/releases/tag/2.0.0
