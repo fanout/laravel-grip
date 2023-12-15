@@ -1,5 +1,5 @@
 {
-  "name": "harmony7/laravel-grip",
+  "name": "fanout/laravel-grip",
   "description": "GRIP for Laravel",
   "type": "library",
   "license": "MIT",
@@ -14,7 +14,7 @@
     }
   ],
   "require": {
-    "fanout/grip": "v1.3.0"
+    "fanout/grip": "^1.1.0"
   },
   "autoload": {
     "psr-4": {

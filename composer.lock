@@ -4,20 +4,20 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "634aa6f13013192d6a87f933d2a79efb",
+    "content-hash": "dbcc8fa5f9d80ce348ace93ead36bf97",
     "packages": [
         {
             "name": "fanout/grip",
-            "version": "v1.0.1",
+            "version": "v1.1.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/fanout/php-grip.git",
-                "reference": "038bfa94275e7bfce6e9346d8ad18ca200914946"
+                "reference": "8cfb0d0e98738f697719ce65255986bc4948ccaa"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/fanout/php-grip/zipball/038bfa94275e7bfce6e9346d8ad18ca200914946",
-                "reference": "038bfa94275e7bfce6e9346d8ad18ca200914946",
+                "url": "https://api.github.com/repos/fanout/php-grip/zipball/8cfb0d0e98738f697719ce65255986bc4948ccaa",
+                "reference": "8cfb0d0e98738f697719ce65255986bc4948ccaa",
                 "shasum": ""
             },
             "require": {
@@ -41,16 +41,20 @@
             ],
             "authors": [
                 {
-                    "name": "Katsuyuki Ohmuro",
-                    "email": "kats@fanout.io"
+                    "name": "Katsuyuki Omuro",
+                    "email": "komuro@fastly.com"
+                },
+                {
+                    "name": "Madeline Boby",
+                    "email": "madeline.boby@fastly.com"
                 }
             ],
             "description": "Grip library for PHP",
             "support": {
                 "issues": "https://github.com/fanout/php-grip/issues",
-                "source": "https://github.com/fanout/php-grip/tree/v1.0.1"
+                "source": "https://github.com/fanout/php-grip/tree/v1.1.0"
             },
-            "time": "2021-08-29T15:21:22+00:00"
+            "time": "2023-12-15T05:41:07+00:00"
         },
         {
             "name": "firebase/php-jwt",
